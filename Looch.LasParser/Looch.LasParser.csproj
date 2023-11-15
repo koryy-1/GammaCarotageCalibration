@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<AssemblyTitle>Looch.LasParser</AssemblyTitle>
+		<Description>Standard file parser for LAS 2.0</Description>
+		<Company>SPE «Looch»</Company>
+		<Product>Looch.LasParser</Product>
+		<Copyright>Copyright ©  2018</Copyright>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Looch.Build.Common" Version="1.0.0.9">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
+
+</Project>
