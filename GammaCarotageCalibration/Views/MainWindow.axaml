@@ -3,18 +3,96 @@
         xmlns:vm="using:GammaCarotageCalibration.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+		xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
         x:Class="GammaCarotageCalibration.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="GammaCarotageCalibration">
+        Title="GammaCarotageCalibration" Width="1400" Height="800">
 
     <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="200"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+
+		<Grid Grid.Column="0">
+			<!--<Grid.RowDefinitions>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>-->
+
+			<StackPanel HorizontalAlignment="Center">
+				<Button Content="Выбрать LAS File для алюминия" Command="{Binding OpenLasFileForAlumCommand}"/>
+				<Button Content="Выбрать LAS File для дюралюминий" Command="{Binding OpenLasFileForDuralCommand}"/>
+				<Button Content="Выбрать LAS File для магния" Command="{Binding OpenLasFileForMagnesCommand}"/>
+				<Button Content="Выбрать LAS File для мрамора" Command="{Binding OpenLasFileForMarbleCommand}"/>
+				<!--<Button Content="Перестроить графики" />-->
+				<Button Content="Показать расчеты" Command="{Binding ShowResultsCommand}"/>
+			</StackPanel>
+		</Grid>
+
+		<Grid Grid.Column="1">
+			<Grid.RowDefinitions>
+				<!--<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="*"/>-->
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
+
+			<!--<Border Grid.Row="0" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding GraphServiceGamma.GraphNearProbe.ProbeSeries}"
+					x:Name="{Binding Title}"
+					Title="{Binding Title}"
+					YAxes="{Binding YAxis}"
+					Sections="{Binding GraphServiceGamma.GraphNearProbe.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
+					ZoomMode="{Binding ZoomMode}">
+				</lvc:CartesianChart>
+			</Border>
+
+			<Border Grid.Row="1" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding GraphServiceGamma.GraphFarProbe.ProbeSeries}"
+					Sections="{Binding GraphServiceGamma.GraphFarProbe.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
+					ZoomMode="{Binding ZoomMode}">
+				</lvc:CartesianChart>
+			</Border>
+
+			<Border Grid.Row="2" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding GraphServiceGamma.GraphFarToNearProbeRatio.ProbeSeries}"
+					Sections="{Binding GraphServiceGamma.GraphFarToNearProbeRatio.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
+					ZoomMode="{Binding ZoomMode}">
+				</lvc:CartesianChart>
+			</Border>-->
+
+			<Border Grid.Row="3" Grid.Column="1">
+				<lvc:CartesianChart
+					Series="{Binding GraphServiceGamma.GraphTemperature.ProbeSeries}"
+					Sections="{Binding GraphServiceGamma.GraphTemperature.Thumbs}"
+					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
+					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
+					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
+					ZoomMode="{Binding ZoomMode}">
+				</lvc:CartesianChart>
+			</Border>
+		</Grid>
+	</Grid>
 
 </Window>

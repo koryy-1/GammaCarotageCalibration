@@ -1,13 +1,10 @@
-﻿using OxyPlot;
-using OxyPlot.Axes;
-using OxyPlot.Series;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LasAnalyzer.Services
+namespace GammaCarotageCalibration.Services
 {
     public static class DataProcessor
     {
@@ -84,20 +81,6 @@ namespace LasAnalyzer.Services
             }
 
             return result;
-        }
-
-        public static PlotModel CropChart(PlotModel chart, double xMin, double xMax, double yMin, double yMax)
-        {
-            // Убираем данные, не попадающие в заданный диапазон.
-            var lineSeries = chart.Series[0] as LineSeries;
-            if (lineSeries != null)
-            {
-                var newPoints = lineSeries.Points.Where(p => p.X >= xMin && p.X <= xMax && p.Y >= yMin && p.Y <= yMax).ToList();
-                lineSeries.Points.Clear();
-                lineSeries.Points.AddRange(newPoints);
-            }
-
-            return chart;
         }
     }
 }

@@ -1,10 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using LasAnalyzer.Models;
-using LasAnalyzer.Services.Graphics;
 using Looch.LasParser;
-using OxyPlot;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace LasAnalyzer.Services
+namespace GammaCarotageCalibration.Services
 {
     public class LasFileReader
     {
