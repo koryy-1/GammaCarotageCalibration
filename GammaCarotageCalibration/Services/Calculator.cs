@@ -51,5 +51,10 @@ namespace GammaCarotageCalibration.Services
 
             return sigma3 - alfa3 * B - Math.Pow(alfa3, 2) * C;
         }
+
+        public double CalculateDensity(double A, double B, double C, double alfa)
+        {
+            return A + B * alfa + C * Math.Pow(alfa, 2);
+        }
     }
 }

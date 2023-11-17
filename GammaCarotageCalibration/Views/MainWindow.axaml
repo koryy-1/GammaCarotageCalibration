@@ -8,7 +8,7 @@
         x:Class="GammaCarotageCalibration.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="GammaCarotageCalibration" Width="1400" Height="800">
+        Title="GammaCarotageCalibration" Width="1400" Height="600">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -28,21 +28,21 @@
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>-->
 
-			<StackPanel HorizontalAlignment="Center">
+			<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 				<Button Content="Выбрать LAS File для алюминия" Command="{Binding OpenLasFileForAlumCommand}"/>
 				<Button Content="Выбрать LAS File для дюралюминий" Command="{Binding OpenLasFileForDuralCommand}"/>
 				<Button Content="Выбрать LAS File для магния" Command="{Binding OpenLasFileForMagnesCommand}"/>
 				<Button Content="Выбрать LAS File для мрамора" Command="{Binding OpenLasFileForMarbleCommand}"/>
 				<!--<Button Content="Перестроить графики" />-->
-				<Button Content="Показать расчеты" Command="{Binding ShowResultsCommand}"/>
+				<Button Content="Произвести расчеты" Command="{Binding ShowResultsCommand}"/>
 			</StackPanel>
 		</Grid>
 
 		<Grid Grid.Column="1">
 			<Grid.RowDefinitions>
-				<!--<RowDefinition Height="*"/>
+				<!--<RowDefinition Height="*"/>-->
 				<RowDefinition Height="*"/>
-				<RowDefinition Height="*"/>-->
+				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 
@@ -82,14 +82,26 @@
 				</lvc:CartesianChart>
 			</Border>-->
 
-			<Border Grid.Row="3" Grid.Column="1">
+			<StackPanel Grid.Row="0" HorizontalAlignment="Center">
+				<TextBlock Text="Отношение выходного сигнала по малому и большому зондам" VerticalAlignment="Center"/>
+				<TextBlock Text="Для алюминия:"/>
+				<TextBox Text="{Binding Alfa1, Mode=TwoWay}" Width="80"/>
+				<TextBlock Text="Для дюралюмния:"/>
+				<TextBox Text="{Binding Alfa2, Mode=TwoWay}" Width="80"/>
+				<TextBlock Text="Размер магния:"/>
+				<TextBox Text="{Binding Alfa3, Mode=TwoWay}" Width="80"/>
+			</StackPanel>
+
+			<StackPanel Grid.Row="1" HorizontalAlignment="Center">
+				<TextBlock Text="Результаты расчетов:" VerticalAlignment="Center"/>
+				<TextBlock Text="{Binding Coefs}" VerticalAlignment="Center"/>
+				<TextBlock Text="{Binding CalcSigmas}" VerticalAlignment="Center"/>
+			</StackPanel>
+
+			<Border Grid.Row="2">
 				<lvc:CartesianChart
-					Series="{Binding GraphServiceGamma.GraphTemperature.ProbeSeries}"
-					Sections="{Binding GraphServiceGamma.GraphTemperature.Thumbs}"
-					PointerMoveCommand="{Binding GraphServiceGamma.PointerMoveCommand}"
-					PointerPressedCommand="{Binding GraphServiceGamma.PointerDownCommand}"
-					PointerReleasedCommand="{Binding GraphServiceGamma.PointerUpCommand}"
-					ZoomMode="{Binding ZoomMode}">
+					Series="{Binding ProbeSeries}"
+					ZoomMode="Both">
 				</lvc:CartesianChart>
 			</Border>
 		</Grid>

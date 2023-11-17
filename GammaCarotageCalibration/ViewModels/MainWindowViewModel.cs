@@ -1,12 +1,18 @@
 ﻿using GammaCarotageCalibration.Models;
 using GammaCarotageCalibration.Services;
+using LiveChartsCore.Kernel.Sketches;
+using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
 using Looch.LasParser;
 using ReactiveUI;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Reactive;
 using System.Threading.Tasks;
+using LiveChartsCore.Defaults;
+using System.Collections.ObjectModel;
 
 namespace GammaCarotageCalibration.ViewModels;
 
@@ -30,6 +36,48 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _probeGraph, value);
     }
 
+    private ISeries[] _probeSeries;
+    public ISeries[] ProbeSeries
+    {
+        get => _probeSeries;
+        set => this.RaiseAndSetIfChanged(ref _probeSeries, value);
+    }
+
+    private double alfa1;
+    public double Alfa1
+    {
+        get => alfa1;
+        set => this.RaiseAndSetIfChanged(ref alfa1, value);
+    }
+
+    private double alfa2;
+    public double Alfa2
+    {
+        get => alfa2;
+        set => this.RaiseAndSetIfChanged(ref alfa2, value);
+    }
+
+    private double alfa3;
+    public double Alfa3
+    {
+        get => alfa3;
+        set => this.RaiseAndSetIfChanged(ref alfa3, value);
+    }
+
+    private string coefs;
+    public string Coefs
+    {
+        get => coefs;
+        set => this.RaiseAndSetIfChanged(ref coefs, value);
+    }
+
+    private string calcSigmas;
+    public string CalcSigmas
+    {
+        get => calcSigmas;
+        set => this.RaiseAndSetIfChanged(ref calcSigmas, value);
+    }
+
     public ReactiveCommand<Unit, Unit> OpenLasFileForAlumCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLasFileForDuralCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLasFileForMagnesCommand { get; }
@@ -46,8 +94,15 @@ public class MainWindowViewModel : ViewModelBase
         OpenLasFileForDuralCommand = ReactiveCommand.CreateFromTask(GetLasDataForDuralumin);
         OpenLasFileForMagnesCommand = ReactiveCommand.CreateFromTask(GetLasDataForMagnesium);
         OpenLasFileForMarbleCommand = ReactiveCommand.CreateFromTask(GetLasDataForMarble);
-        PlotGraphCommand = ReactiveCommand.Create(PlotGraph);
+        //PlotGraphCommand = ReactiveCommand.Create(PlotGraph);
         ShowResultsCommand = ReactiveCommand.Create(ShowResults);
+
+        var LineSeries = new LineSeries<ObservablePoint>();
+
+        ProbeSeries = new ISeries[]
+        {
+            LineSeries,
+        };
 
         YAxis = new[]
         {
@@ -64,17 +119,82 @@ public class MainWindowViewModel : ViewModelBase
         // пусть пока что числа будут выводиться в главном окне
         // тут будут производиться расчеты кэфов
         // а потом строиться график (зависимость отношений б/м к плотности материала)
-        throw new NotImplementedException();
+
+
+        // проверка на валидность поля
+        if (Alfa1 == 0 || Alfa2 == 0 || Alfa3 == 0)
+            return;
+
+        // расчет А В С
+        Calculator Calculator = new Calculator();
+        double sigma1 = 1880;
+        double sigma2 = 2710;
+        double sigma3 = 2850;
+        var A = Calculator.GetCoefA(
+            Alfa1, Alfa2, Alfa3,
+            sigma1, sigma2, sigma3
+        );
+        var B = Calculator.GetCoefB(
+            Alfa1, Alfa2, Alfa3,
+            sigma1, sigma2, sigma3
+        );
+        var C = Calculator.GetCoefC(
+            Alfa1, Alfa2, Alfa3,
+            sigma1, sigma2, sigma3
+        );
+
+        // нахождение расчетной плотности сигмы
+        var calcSigma1 = Calculator.CalculateDensity(A, B, C, Alfa1);
+        var calcSigma2 = Calculator.CalculateDensity(A, B, C, Alfa2);
+        var calcSigma3 = Calculator.CalculateDensity(A, B, C, Alfa3);
+
+        Coefs = $"A = {A}\nB = {B}\nC = {C}\n";
+        CalcSigmas = $"calcSigma1 = {calcSigma1}\ncalcSigma2 = {calcSigma2}\ncalcSigma3 = {calcSigma3}\n";
+
+        ObservableCollection<ObservablePoint> data = new ObservableCollection<ObservablePoint>
+        {
+            new ObservablePoint(Alfa1, sigma1),
+            new ObservablePoint(Alfa2, sigma2),
+            new ObservablePoint(Alfa3, sigma3)
+        };
+        
+
+        PlotGraph(data);
     }
 
-    private void PlotGraph()
+    private void PlotGraph(ObservableCollection<ObservablePoint> data)
     {
-        // todo: выставить ProbeGraph, в нем будет только кривая
-        throw new NotImplementedException();
+        var LineSeries = new LineSeries<ObservablePoint>
+        {
+            Values = data,
+            //GeometryStroke = null,
+            //GeometryFill = null,
+            //Fill = null,
+            Stroke = new SolidColorPaint
+            {
+                Color = SKColors.RoyalBlue,
+                StrokeThickness = 3,
+            },
+            LineSmoothness = 0,
+        };
+
+        ProbeSeries = new ISeries[]
+        {
+            LineSeries,
+        };
     }
 
     // todo: кнопка произвести расчеты
     // и построить апроксимирующий график
+
+    // алгоритм следующий
+    // сначалавычисляем альфу для воды
+    // потом вычисляем альфы для 3-х материалов
+    // потом строим график эталонных значений плотности от альфы для каждого материала
+    // вычисляем кэфы А В и С
+    // далее с помощью метода Calculator.CalculateDensity вычисляем градуировочную хар-ку
+    // вопрос, если альфа для 1 материала в качестве аргумента выдает результат = эталон знач плотности,
+    // то значит в формулу нужно подставлять альфу для воды (мрамора)?
 
     private async Task GetLasDataForAluminum()
     {
