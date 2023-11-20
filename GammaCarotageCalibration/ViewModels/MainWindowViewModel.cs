@@ -13,6 +13,8 @@ using System.Reactive;
 using System.Threading.Tasks;
 using LiveChartsCore.Defaults;
 using System.Collections.ObjectModel;
+using System.Linq;
+using LiveChartsCore.Geo;
 
 namespace GammaCarotageCalibration.ViewModels;
 
@@ -90,6 +92,14 @@ public class MainWindowViewModel : ViewModelBase
     {
         _lasFileReader = new LasFileReader();
 
+        LasData = new Dictionary<Materials, LasParser>
+        {
+            { Materials.Aluminum, null },
+            { Materials.Duralumin, null },
+            { Materials.Magnesium, null },
+            { Materials.Marble, null }
+        };
+
         OpenLasFileForAlumCommand = ReactiveCommand.CreateFromTask(GetLasDataForAluminum);
         OpenLasFileForDuralCommand = ReactiveCommand.CreateFromTask(GetLasDataForDuralumin);
         OpenLasFileForMagnesCommand = ReactiveCommand.CreateFromTask(GetLasDataForMagnesium);
@@ -116,20 +126,16 @@ public class MainWindowViewModel : ViewModelBase
 
     private void ShowResults()
     {
-        // пусть пока что числа будут выводиться в главном окне
-        // тут будут производиться расчеты кэфов
-        // а потом строиться график (зависимость отношений б/м к плотности материала)
-
-
         // проверка на валидность поля
         if (Alfa1 == 0 || Alfa2 == 0 || Alfa3 == 0)
             return;
 
         // расчет А В С
-        Calculator Calculator = new Calculator();
         double sigma1 = 1880;
         double sigma2 = 2710;
         double sigma3 = 2850;
+
+        Calculator Calculator = new Calculator();
         var A = Calculator.GetCoefA(
             Alfa1, Alfa2, Alfa3,
             sigma1, sigma2, sigma3
@@ -202,7 +208,12 @@ public class MainWindowViewModel : ViewModelBase
         if (lasData is null)
             return;
 
-        LasData.Add(Materials.Aluminum, lasData);
+        LasData[Materials.Aluminum] = lasData;
+
+        var nearProbeAverage = lasData.Data["RSD"].Average().Value;
+        var farProbeAverage = lasData.Data["RLD"].Average().Value;
+
+        Alfa1 = farProbeAverage / nearProbeAverage;
     }
 
     private async Task GetLasDataForDuralumin()
@@ -211,7 +222,12 @@ public class MainWindowViewModel : ViewModelBase
         if (lasData is null)
             return;
 
-        LasData.Add(Materials.Duralumin, lasData);
+        LasData[Materials.Duralumin] = lasData;
+
+        var nearProbeAverage = lasData.Data["RSD"].Average().Value;
+        var farProbeAverage = lasData.Data["RLD"].Average().Value;
+
+        Alfa2 = farProbeAverage / nearProbeAverage;
     }
 
     private async Task GetLasDataForMagnesium()
@@ -220,7 +236,12 @@ public class MainWindowViewModel : ViewModelBase
         if (lasData is null)
             return;
 
-        LasData.Add(Materials.Magnesium, lasData);
+        LasData[Materials.Magnesium] = lasData;
+
+        var nearProbeAverage = lasData.Data["RSD"].Average().Value;
+        var farProbeAverage = lasData.Data["RLD"].Average().Value;
+
+        Alfa3 = farProbeAverage / nearProbeAverage;
     }
 
     private async Task GetLasDataForMarble()
@@ -229,6 +250,6 @@ public class MainWindowViewModel : ViewModelBase
         if (lasData is null)
             return;
 
-        LasData.Add(Materials.Marble, lasData);
+        LasData[Materials.Marble] = lasData;
     }
 }
