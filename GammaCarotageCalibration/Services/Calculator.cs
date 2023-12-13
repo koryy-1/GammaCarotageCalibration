@@ -7,9 +7,32 @@ using System.Threading.Tasks;
 
 namespace GammaCarotageCalibration.Services
 {
-    public class Calculator
+    public static class Calculator
     {
-        public double GetCoefC(
+        public static double CalcDensityPl(double Q, double A, double C, double alfa)
+        {
+            return Q - A * Math.Log10(alfa * C);
+        }
+
+        public static double GetCoefA(double alfa1, double alfa2, double C)
+        {
+            return 830 / (Math.Log10(alfa2 * C) - Math.Log10(alfa1 * C));
+        }
+
+        public static double GetCoefQ(double alfa1, double alfa2, double C, double sigma1)
+        {
+            double A = GetCoefA(alfa1, alfa2, C);
+            return A * Math.Log10(alfa1 * C) + sigma1;
+        }
+
+        //public static double CalcDensityPl(double Q, double A, double J_LargeProbe, double J_SmallProbe)
+        //{
+        //    double C = 2;
+        //    return Q - A * Math.Log(J_LargeProbe / J_SmallProbe * C);
+        //}
+
+
+        public static double GetCoefC(
             double alfa1, double alfa2, double alfa3,
             double sigma1, double sigma2, double sigma3
         )
@@ -20,7 +43,7 @@ namespace GammaCarotageCalibration.Services
             return numerator / denominator;
         }
 
-        public double GetCoefB(
+        public static double GetCoefB(
             double alfa1, double alfa2, double alfa3,
             double sigma1, double sigma2, double sigma3
         )
@@ -34,7 +57,7 @@ namespace GammaCarotageCalibration.Services
             return (sigma2 - sigma1) / (alfa2 - alfa1) - (alfa2 + alfa1) * C;
         }
 
-        public double GetCoefA(
+        public static double GetCoefA(
             double alfa1, double alfa2, double alfa3,
             double sigma1, double sigma2, double sigma3
         )
@@ -52,7 +75,7 @@ namespace GammaCarotageCalibration.Services
             return sigma3 - alfa3 * B - Math.Pow(alfa3, 2) * C;
         }
 
-        public double CalculateDensity(double A, double B, double C, double alfa)
+        public static double CalculateDensity(double A, double B, double C, double alfa)
         {
             return A + B * alfa + C * Math.Pow(alfa, 2);
         }

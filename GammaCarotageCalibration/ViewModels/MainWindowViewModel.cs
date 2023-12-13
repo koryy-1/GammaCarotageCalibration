@@ -45,6 +45,25 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _probeSeries, value);
     }
 
+    private double sigmaAl;
+    public double SigmaAl
+    {
+        get => sigmaAl;
+        set => this.RaiseAndSetIfChanged(ref sigmaAl, value);
+    }
+    private double sigmaDural;
+    public double SigmaDural
+    {
+        get => sigmaDural;
+        set => this.RaiseAndSetIfChanged(ref sigmaDural, value);
+    }
+    private double sigmaMagn;
+    public double SigmaMagn
+    {
+        get => sigmaMagn;
+        set => this.RaiseAndSetIfChanged(ref sigmaMagn, value);
+    }
+
     private double alfa1;
     public double Alfa1
     {
@@ -100,6 +119,10 @@ public class MainWindowViewModel : ViewModelBase
             { Materials.Marble, null }
         };
 
+        SigmaAl = 2710;
+        SigmaDural = 2850;
+        SigmaMagn = 1880;
+
         OpenLasFileForAlumCommand = ReactiveCommand.CreateFromTask(GetLasDataForAluminum);
         OpenLasFileForDuralCommand = ReactiveCommand.CreateFromTask(GetLasDataForDuralumin);
         OpenLasFileForMagnesCommand = ReactiveCommand.CreateFromTask(GetLasDataForMagnesium);
@@ -130,12 +153,41 @@ public class MainWindowViewModel : ViewModelBase
         if (Alfa1 == 0 || Alfa2 == 0 || Alfa3 == 0)
             return;
 
+        double C = 2;
+        double A = Calculator.GetCoefA(Alfa1, Alfa2, C);
+        double Q = Calculator.GetCoefQ(Alfa1, Alfa2, C, SigmaAl);
+
+        // нахождение расчетной плотности сигмы
+        var calcSigma1 = Calculator.CalcDensityPl(Q, A, C, Alfa1);
+        var calcSigma2 = Calculator.CalcDensityPl(Q, A, C, Alfa2);
+        var calcSigma3 = Calculator.CalcDensityPl(Q, A, C, Alfa3);
+
+        Coefs = $"Q = {Q}\nA = {A}\nC = {C}\n";
+        CalcSigmas = $"calcSigma1 = {calcSigma1}\ncalcSigma2 = {calcSigma2}\ncalcSigma3 = {calcSigma3}\n";
+
+        ObservableCollection<ObservablePoint> data = new ObservableCollection<ObservablePoint>
+        {
+            new ObservablePoint(Alfa1, SigmaAl),
+            new ObservablePoint(Alfa2, SigmaDural),
+            new ObservablePoint(Alfa3, SigmaMagn)
+        };
+
+        // todo: сделать вывод погрешностей в %
+
+        PlotGraph(data);
+    }
+
+    private void OldShowResults()
+    {
+        // проверка на валидность поля
+        if (Alfa1 == 0 || Alfa2 == 0 || Alfa3 == 0)
+            return;
+
         // расчет А В С
         double sigma1 = 1880;
         double sigma2 = 2710;
         double sigma3 = 2850;
 
-        Calculator Calculator = new Calculator();
         var A = Calculator.GetCoefA(
             Alfa1, Alfa2, Alfa3,
             sigma1, sigma2, sigma3
@@ -163,9 +215,13 @@ public class MainWindowViewModel : ViewModelBase
             new ObservablePoint(Alfa2, sigma2),
             new ObservablePoint(Alfa3, sigma3)
         };
-        
 
         PlotGraph(data);
+    }
+
+    private void SolveEquation()
+    {
+
     }
 
     private void PlotGraph(ObservableCollection<ObservablePoint> data)

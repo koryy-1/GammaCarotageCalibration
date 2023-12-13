@@ -41,13 +41,23 @@
 
 		<Grid Grid.Column="1" Margin="20,0,0,0">
 			<Grid.RowDefinitions>
-				<!--<RowDefinition Height="*"/>-->
+				<RowDefinition Height="250"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
-
+			
 			<StackPanel Grid.Row="0">
+				<TextBlock Text="Плотность" VerticalAlignment="Center"/>
+				<TextBlock Text="Для алюминия:"/>
+				<TextBox Text="{Binding SigmaAl, Mode=TwoWay}" Width="160"/>
+				<TextBlock Text="Для дюралюмния:"/>
+				<TextBox Text="{Binding SigmaDural, Mode=TwoWay}" Width="160"/>
+				<TextBlock Text="Для магния:"/>
+				<TextBox Text="{Binding SigmaMagn, Mode=TwoWay}" Width="160"/>
+			</StackPanel>
+
+			<StackPanel Grid.Row="1">
 				<TextBlock Text="Альфы" VerticalAlignment="Center"/>
 				<TextBlock Text="Для алюминия:"/>
 				<TextBox Text="{Binding Alfa1, Mode=TwoWay}" Width="160"/>
@@ -57,13 +67,13 @@
 				<TextBox Text="{Binding Alfa3, Mode=TwoWay}" Width="160"/>
 			</StackPanel>
 
-			<StackPanel Grid.Row="1">
-				<TextBlock Text="Коэффициенты A, B и C:" VerticalAlignment="Center"/>
+			<StackPanel Grid.Row="2">
+				<TextBlock Text="Коэффициенты:" VerticalAlignment="Center"/>
 				<TextBlock Text="{Binding Coefs}" VerticalAlignment="Center"/>
 				
 			</StackPanel>
 
-			<StackPanel Grid.Row="2">
+			<StackPanel Grid.Row="3">
 				<TextBlock Text="Градуировочная характеристика (расчетная плотность):" VerticalAlignment="Center"/>
 				<TextBlock Text="{Binding CalcSigmas}" VerticalAlignment="Center"/>
 			</StackPanel>
