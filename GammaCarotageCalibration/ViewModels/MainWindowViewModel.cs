@@ -15,6 +15,7 @@ using LiveChartsCore.Defaults;
 using System.Collections.ObjectModel;
 using System.Linq;
 using LiveChartsCore.Geo;
+using System.Globalization;
 
 namespace GammaCarotageCalibration.ViewModels;
 
@@ -46,19 +47,19 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     private double sigmaAl;
-    public double SigmaAl
+    public double Sigma1
     {
         get => sigmaAl;
         set => this.RaiseAndSetIfChanged(ref sigmaAl, value);
     }
     private double sigmaDural;
-    public double SigmaDural
+    public double Sigma2
     {
         get => sigmaDural;
         set => this.RaiseAndSetIfChanged(ref sigmaDural, value);
     }
     private double sigmaMagn;
-    public double SigmaMagn
+    public double Sigma3
     {
         get => sigmaMagn;
         set => this.RaiseAndSetIfChanged(ref sigmaMagn, value);
@@ -98,6 +99,12 @@ public class MainWindowViewModel : ViewModelBase
         get => calcSigmas;
         set => this.RaiseAndSetIfChanged(ref calcSigmas, value);
     }
+    private string measurementErrors;
+    public string MeasurementErrors
+    {
+        get => measurementErrors;
+        set => this.RaiseAndSetIfChanged(ref measurementErrors, value);
+    }
 
     public ReactiveCommand<Unit, Unit> OpenLasFileForAlumCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLasFileForDuralCommand { get; }
@@ -119,9 +126,13 @@ public class MainWindowViewModel : ViewModelBase
             { Materials.Marble, null }
         };
 
-        SigmaAl = 2710;
-        SigmaDural = 2850;
-        SigmaMagn = 1880;
+        Sigma1 = 1880;
+        Sigma2 = 2710;
+        Sigma3 = 2850;
+
+        Alfa1 = Math.Round(205.0 / 849.0, 6);
+        Alfa2 = Math.Round(43.0 / 494.0, 6);
+        Alfa3 = Math.Round(34.0 / 452.0, 6);
 
         OpenLasFileForAlumCommand = ReactiveCommand.CreateFromTask(GetLasDataForAluminum);
         OpenLasFileForDuralCommand = ReactiveCommand.CreateFromTask(GetLasDataForDuralumin);
@@ -155,24 +166,30 @@ public class MainWindowViewModel : ViewModelBase
 
         double C = 2;
         double A = Calculator.GetCoefA(Alfa1, Alfa2, C);
-        double Q = Calculator.GetCoefQ(Alfa1, Alfa2, C, SigmaAl);
+        double Q = Calculator.GetCoefQ(Alfa1, Alfa2, C, Sigma1); // ?????
 
         // нахождение расчетной плотности сигмы
         var calcSigma1 = Calculator.CalcDensityPl(Q, A, C, Alfa1);
         var calcSigma2 = Calculator.CalcDensityPl(Q, A, C, Alfa2);
         var calcSigma3 = Calculator.CalcDensityPl(Q, A, C, Alfa3);
 
-        Coefs = $"Q = {Q}\nA = {A}\nC = {C}\n";
-        CalcSigmas = $"calcSigma1 = {calcSigma1}\ncalcSigma2 = {calcSigma2}\ncalcSigma3 = {calcSigma3}\n";
+        var error1 = (Sigma1 - calcSigma1) / Sigma1 * 100;
+        var error2 = (Sigma2 - calcSigma2) / Sigma2 * 100;
+        var error3 = (Sigma3 - calcSigma3) / Sigma3 * 100;
+
+        Coefs = $"A = {A}\nQ = {Q}\nC = {C}\n";
+        CalcSigmas = $"calcSigmaAl = {calcSigma1}\ncalcSigmaDural = {calcSigma2}\ncalcSigmaMagn = {calcSigma3}\n";
+
+        MeasurementErrors = $"Для алюминия = {Math.Round(error1, 3)}%\nДля дюралюминия = {Math.Round(error2, 3)}%\nДля магния = {Math.Round(error3, 3)}%\n";
 
         ObservableCollection<ObservablePoint> data = new ObservableCollection<ObservablePoint>
         {
-            new ObservablePoint(Alfa1, SigmaAl),
-            new ObservablePoint(Alfa2, SigmaDural),
-            new ObservablePoint(Alfa3, SigmaMagn)
+            new ObservablePoint(Alfa1, Sigma1),
+            new ObservablePoint(Alfa2, Sigma2),
+            new ObservablePoint(Alfa3, Sigma3)
         };
 
-        // todo: сделать вывод погрешностей в %
+        // todo: сделать 3 табл, 1 для отношения, 2 для дальнего, 3 для ближнего зонда
 
         PlotGraph(data);
     }

@@ -8,7 +8,7 @@
         x:Class="GammaCarotageCalibration.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="GammaCarotageCalibration" Width="1400" Height="600">
+        Title="GammaCarotageCalibration" Width="1400" Height="800">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -41,24 +41,24 @@
 
 		<Grid Grid.Column="1" Margin="20,0,0,0">
 			<Grid.RowDefinitions>
-				<RowDefinition Height="250"/>
+				<!--<RowDefinition Height="200"/>-->
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			
-			<StackPanel Grid.Row="0">
-				<TextBlock Text="Плотность" VerticalAlignment="Center"/>
+			<StackPanel Grid.Row="0" VerticalAlignment="Center">
+				<TextBlock Text="Плотность"/>
 				<TextBlock Text="Для алюминия:"/>
-				<TextBox Text="{Binding SigmaAl, Mode=TwoWay}" Width="160"/>
+				<TextBox Text="{Binding Sigma1, Mode=TwoWay}" Width="160"/>
 				<TextBlock Text="Для дюралюмния:"/>
-				<TextBox Text="{Binding SigmaDural, Mode=TwoWay}" Width="160"/>
+				<TextBox Text="{Binding Sigma2, Mode=TwoWay}" Width="160"/>
 				<TextBlock Text="Для магния:"/>
-				<TextBox Text="{Binding SigmaMagn, Mode=TwoWay}" Width="160"/>
+				<TextBox Text="{Binding Sigma3, Mode=TwoWay}" Width="160"/>
 			</StackPanel>
 
-			<StackPanel Grid.Row="1">
-				<TextBlock Text="Альфы" VerticalAlignment="Center"/>
+			<StackPanel Grid.Row="1" VerticalAlignment="Center">
+				<TextBlock Text="Альфы"/>
 				<TextBlock Text="Для алюминия:"/>
 				<TextBox Text="{Binding Alfa1, Mode=TwoWay}" Width="160"/>
 				<TextBlock Text="Для дюралюмния:"/>
@@ -67,16 +67,15 @@
 				<TextBox Text="{Binding Alfa3, Mode=TwoWay}" Width="160"/>
 			</StackPanel>
 
-			<StackPanel Grid.Row="2">
+			<StackPanel Grid.Row="2" VerticalAlignment="Center">
 				<TextBlock Text="Коэффициенты:" VerticalAlignment="Center"/>
 				<TextBlock Text="{Binding Coefs}" VerticalAlignment="Center"/>
-				
+				<TextBlock Text="Градуировочная характеристика (расчетная плотность)" VerticalAlignment="Center"/>
+				<TextBlock Text="{Binding CalcSigmas}" VerticalAlignment="Center"/>
+				<TextBlock Text="Погрешности" VerticalAlignment="Center"/>
+				<TextBlock Text="{Binding MeasurementErrors}" VerticalAlignment="Center"/>
 			</StackPanel>
 
-			<StackPanel Grid.Row="3">
-				<TextBlock Text="Градуировочная характеристика (расчетная плотность):" VerticalAlignment="Center"/>
-				<TextBlock Text="{Binding CalcSigmas}" VerticalAlignment="Center"/>
-			</StackPanel>
 		</Grid>
 
 		<Grid Grid.Column="2">
