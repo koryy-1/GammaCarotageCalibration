@@ -17,7 +17,7 @@
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="200"/>
-			<ColumnDefinition Width="480"/>
+			<ColumnDefinition Width="700"/>
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
 
@@ -41,13 +41,13 @@
 
 		<Grid Grid.Column="1" Margin="20,0,0,0">
 			<Grid.RowDefinitions>
-				<!--<RowDefinition Height="200"/>-->
+				<RowDefinition Height="200"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			
-			<StackPanel Grid.Row="0" VerticalAlignment="Center">
+			<StackPanel Grid.Row="0">
 				<TextBlock Text="Плотность"/>
 				<TextBlock Text="Для алюминия:"/>
 				<TextBox Text="{Binding Sigma1, Mode=TwoWay}" Width="160"/>
@@ -57,7 +57,58 @@
 				<TextBox Text="{Binding Sigma3, Mode=TwoWay}" Width="160"/>
 			</StackPanel>
 
-			<StackPanel Grid.Row="1" VerticalAlignment="Center">
+			<StackPanel Grid.Row="1">
+				<TextBlock Text="расчеты для отношений большого к малому зонду" VerticalAlignment="Center"/>
+				<DataGrid Margin="20" ItemsSource="{Binding ResultTableAlfa, Mode=TwoWay}"
+					  IsReadOnly="True"
+					  CanUserResizeColumns="True"
+					  CanUserSortColumns="False"
+					  GridLinesVisibility="All"
+					  BorderThickness="1" BorderBrush="Gray">
+					<DataGrid.Columns>
+						<DataGridTextColumn Header="Плотность"  Binding="{Binding Density}"/>
+						<DataGridTextColumn Header="Показания зонда" Binding="{Binding ProbeData}" />
+						<DataGridTextColumn Header="Расчетная плотность"  Binding="{Binding CalculatedDensity}"/>
+						<DataGridTextColumn Header="Погрешность" Binding="{Binding MeasurementError}" />
+					</DataGrid.Columns>
+				</DataGrid>
+			</StackPanel>
+
+			<StackPanel Grid.Row="2">
+				<TextBlock Text="расчеты для большого зонда" VerticalAlignment="Center"/>
+				<DataGrid Margin="20" ItemsSource="{Binding ResultTableLargeProbe, Mode=TwoWay}"
+					  IsReadOnly="True"
+					  CanUserResizeColumns="True"
+					  CanUserSortColumns="False"
+					  GridLinesVisibility="All"
+					  BorderThickness="1" BorderBrush="Gray">
+					<DataGrid.Columns>
+						<DataGridTextColumn Header="Плотность"  Binding="{Binding Density}"/>
+						<DataGridTextColumn Header="Показания зонда" Binding="{Binding ProbeData}" />
+						<DataGridTextColumn Header="Расчетная плотность"  Binding="{Binding CalculatedDensity}"/>
+						<DataGridTextColumn Header="Погрешность" Binding="{Binding MeasurementError}" />
+					</DataGrid.Columns>
+				</DataGrid>
+			</StackPanel>
+
+			<StackPanel Grid.Row="3">
+				<TextBlock Text="расчеты для малого зонда" VerticalAlignment="Center"/>
+				<DataGrid Margin="20" ItemsSource="{Binding ResultTableSmallProbe, Mode=TwoWay}"
+					  IsReadOnly="True"
+					  CanUserResizeColumns="True"
+					  CanUserSortColumns="False"
+					  GridLinesVisibility="All"
+					  BorderThickness="1" BorderBrush="Gray">
+					<DataGrid.Columns>
+						<DataGridTextColumn Header="Плотность"  Binding="{Binding Density}"/>
+						<DataGridTextColumn Header="Показания зонда" Binding="{Binding ProbeData}" />
+						<DataGridTextColumn Header="Расчетная плотность"  Binding="{Binding CalculatedDensity}"/>
+						<DataGridTextColumn Header="Погрешность" Binding="{Binding MeasurementError}" />
+					</DataGrid.Columns>
+				</DataGrid>
+			</StackPanel>
+
+			<!--<StackPanel Grid.Row="1" VerticalAlignment="Center">
 				<TextBlock Text="Альфы"/>
 				<TextBlock Text="Для алюминия:"/>
 				<TextBox Text="{Binding Alfa1, Mode=TwoWay}" Width="160"/>
@@ -65,16 +116,16 @@
 				<TextBox Text="{Binding Alfa2, Mode=TwoWay}" Width="160"/>
 				<TextBlock Text="Для магния:"/>
 				<TextBox Text="{Binding Alfa3, Mode=TwoWay}" Width="160"/>
-			</StackPanel>
+			</StackPanel>-->
 
-			<StackPanel Grid.Row="2" VerticalAlignment="Center">
+			<!--<StackPanel Grid.Row="2" VerticalAlignment="Center">
 				<TextBlock Text="Коэффициенты:" VerticalAlignment="Center"/>
 				<TextBlock Text="{Binding Coefs}" VerticalAlignment="Center"/>
 				<TextBlock Text="Градуировочная характеристика (расчетная плотность)" VerticalAlignment="Center"/>
 				<TextBlock Text="{Binding CalcSigmas}" VerticalAlignment="Center"/>
 				<TextBlock Text="Погрешности" VerticalAlignment="Center"/>
 				<TextBlock Text="{Binding MeasurementErrors}" VerticalAlignment="Center"/>
-			</StackPanel>
+			</StackPanel>-->
 
 		</Grid>
 

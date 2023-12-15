@@ -16,7 +16,7 @@ namespace GammaCarotageCalibration.Services
 
         public static double GetCoefA(double alfa1, double alfa2, double C)
         {
-            return 830 / (Math.Log10(alfa2 * C) - Math.Log10(alfa1 * C));
+            return 830 / (Math.Log10(alfa1 * C) - Math.Log10(alfa2 * C));
         }
 
         public static double GetCoefQ(double alfa1, double alfa2, double C, double sigma1)

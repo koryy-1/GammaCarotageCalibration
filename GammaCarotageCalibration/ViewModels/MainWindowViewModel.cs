@@ -86,24 +86,25 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref alfa3, value);
     }
 
-    private string coefs;
-    public string Coefs
+    private ObservableCollection<Report> resultTableSmallProbe;
+    public ObservableCollection<Report> ResultTableSmallProbe
     {
-        get => coefs;
-        set => this.RaiseAndSetIfChanged(ref coefs, value);
+        get => resultTableSmallProbe;
+        set => this.RaiseAndSetIfChanged(ref resultTableSmallProbe, value);
     }
 
-    private string calcSigmas;
-    public string CalcSigmas
+    private ObservableCollection<Report> resultTableLargeProbe;
+    public ObservableCollection<Report> ResultTableLargeProbe
     {
-        get => calcSigmas;
-        set => this.RaiseAndSetIfChanged(ref calcSigmas, value);
+        get => resultTableLargeProbe;
+        set => this.RaiseAndSetIfChanged(ref resultTableLargeProbe, value);
     }
-    private string measurementErrors;
-    public string MeasurementErrors
+
+    private ObservableCollection<Report> resultTableAlfa;
+    public ObservableCollection<Report> ResultTableAlfa
     {
-        get => measurementErrors;
-        set => this.RaiseAndSetIfChanged(ref measurementErrors, value);
+        get => resultTableAlfa;
+        set => this.RaiseAndSetIfChanged(ref resultTableAlfa, value);
     }
 
     public ReactiveCommand<Unit, Unit> OpenLasFileForAlumCommand { get; }
@@ -130,9 +131,17 @@ public class MainWindowViewModel : ViewModelBase
         Sigma2 = 2710;
         Sigma3 = 2850;
 
-        Alfa1 = Math.Round(205.0 / 849.0, 6);
-        Alfa2 = Math.Round(43.0 / 494.0, 6);
-        Alfa3 = Math.Round(34.0 / 452.0, 6);
+        // todo: fix this
+        double[] largeProbe = { 205, 43, 34 };
+        double[] smallProbe = { 849, 494, 452 };
+        Alfa1 = Math.Round(largeProbe[0] / smallProbe[0], 6);
+        Alfa2 = Math.Round(largeProbe[1] / smallProbe[1], 6);
+        Alfa3 = Math.Round(largeProbe[2] / smallProbe[2], 6);
+
+        ResultTableAlfa = GetResultTable(Alfa1, Alfa2, Alfa3);
+        ResultTableLargeProbe = GetResultTable(largeProbe[0], largeProbe[1], largeProbe[2]);
+        ResultTableSmallProbe = GetResultTable(smallProbe[0], smallProbe[1], smallProbe[2]);
+        //
 
         OpenLasFileForAlumCommand = ReactiveCommand.CreateFromTask(GetLasDataForAluminum);
         OpenLasFileForDuralCommand = ReactiveCommand.CreateFromTask(GetLasDataForDuralumin);
@@ -158,15 +167,39 @@ public class MainWindowViewModel : ViewModelBase
         };
     }
 
+    // todo: сделать поля для большого и малого зондов рядом с полями для плотностей
+    // и поля для их отношений
     private void ShowResults()
     {
-        // проверка на валидность поля
-        if (Alfa1 == 0 || Alfa2 == 0 || Alfa3 == 0)
-            return;
+        double[] largeProbe = { 205, 43, 34 };
+        double[] smallProbe = { 849, 494, 452 };
+        Alfa1 = Math.Round(largeProbe[0] / smallProbe[0], 6);
+        Alfa2 = Math.Round(largeProbe[1] / smallProbe[1], 6);
+        Alfa3 = Math.Round(largeProbe[2] / smallProbe[2], 6);
 
+        // проверка на валидность поля
+        //if (Alfa1 == 0 || Alfa2 == 0 || Alfa3 == 0)
+        //    return;
+
+        ResultTableAlfa = GetResultTable(Alfa1, Alfa2, Alfa3);
+        ResultTableLargeProbe = GetResultTable(largeProbe[0], largeProbe[1], largeProbe[2]);
+        ResultTableSmallProbe = GetResultTable(smallProbe[0], smallProbe[1], smallProbe[2]);
+
+        ObservableCollection<ObservablePoint> data = new ObservableCollection<ObservablePoint>
+        {
+            new ObservablePoint(Alfa1, Sigma1),
+            new ObservablePoint(Alfa2, Sigma2),
+            new ObservablePoint(Alfa3, Sigma3)
+        };
+
+        PlotGraph(data);
+    }
+
+    private ObservableCollection<Report> GetResultTable(double alfa1, double alfa2, double alfa3)
+    {
         double C = 2;
         double A = Calculator.GetCoefA(Alfa1, Alfa2, C);
-        double Q = Calculator.GetCoefQ(Alfa1, Alfa2, C, Sigma1); // ?????
+        double Q = Calculator.GetCoefQ(Alfa1, Alfa2, C, Sigma1);
 
         // нахождение расчетной плотности сигмы
         var calcSigma1 = Calculator.CalcDensityPl(Q, A, C, Alfa1);
@@ -177,21 +210,29 @@ public class MainWindowViewModel : ViewModelBase
         var error2 = (Sigma2 - calcSigma2) / Sigma2 * 100;
         var error3 = (Sigma3 - calcSigma3) / Sigma3 * 100;
 
-        Coefs = $"A = {A}\nQ = {Q}\nC = {C}\n";
-        CalcSigmas = $"calcSigmaAl = {calcSigma1}\ncalcSigmaDural = {calcSigma2}\ncalcSigmaMagn = {calcSigma3}\n";
-
-        MeasurementErrors = $"Для алюминия = {Math.Round(error1, 3)}%\nДля дюралюминия = {Math.Round(error2, 3)}%\nДля магния = {Math.Round(error3, 3)}%\n";
-
-        ObservableCollection<ObservablePoint> data = new ObservableCollection<ObservablePoint>
+        ObservableCollection<Report> table = new ObservableCollection<Report>()
         {
-            new ObservablePoint(Alfa1, Sigma1),
-            new ObservablePoint(Alfa2, Sigma2),
-            new ObservablePoint(Alfa3, Sigma3)
+            new Report(
+                Sigma1,
+                alfa1,
+                calcSigma1,
+                error1
+            ),
+            new Report(
+                Sigma2,
+                alfa2,
+                calcSigma2,
+                error2
+            ),
+            new Report(
+                Sigma3,
+                alfa3,
+                calcSigma3,
+                error3
+            ),
         };
 
-        // todo: сделать 3 табл, 1 для отношения, 2 для дальнего, 3 для ближнего зонда
-
-        PlotGraph(data);
+        return table;
     }
 
     private void OldShowResults()
@@ -222,9 +263,6 @@ public class MainWindowViewModel : ViewModelBase
         var calcSigma1 = Calculator.CalculateDensity(A, B, C, Alfa1);
         var calcSigma2 = Calculator.CalculateDensity(A, B, C, Alfa2);
         var calcSigma3 = Calculator.CalculateDensity(A, B, C, Alfa3);
-
-        Coefs = $"A = {A}\nB = {B}\nC = {C}\n";
-        CalcSigmas = $"calcSigma1 = {calcSigma1}\ncalcSigma2 = {calcSigma2}\ncalcSigma3 = {calcSigma3}\n";
 
         ObservableCollection<ObservablePoint> data = new ObservableCollection<ObservablePoint>
         {
