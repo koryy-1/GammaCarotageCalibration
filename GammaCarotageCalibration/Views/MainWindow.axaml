@@ -8,7 +8,7 @@
         x:Class="GammaCarotageCalibration.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="GammaCarotageCalibration" Width="1400" Height="800">
+        Title="GammaCarotageCalibration" Width="1400" Height="750">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -17,7 +17,7 @@
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="200"/>
-			<ColumnDefinition Width="700"/>
+			<ColumnDefinition Width="620"/>
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
 
@@ -47,15 +47,29 @@
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
 			
-			<StackPanel Grid.Row="0">
-				<TextBlock Text="Плотность"/>
-				<TextBlock Text="Для алюминия:"/>
-				<TextBox Text="{Binding Sigma1, Mode=TwoWay}" Width="160"/>
-				<TextBlock Text="Для дюралюмния:"/>
-				<TextBox Text="{Binding Sigma2, Mode=TwoWay}" Width="160"/>
-				<TextBlock Text="Для магния:"/>
-				<TextBox Text="{Binding Sigma3, Mode=TwoWay}" Width="160"/>
-			</StackPanel>
+			<Grid Grid.Row="0">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="*"/>
+				</Grid.ColumnDefinitions>
+				<StackPanel Grid.Column="0">
+					<TextBlock Text="Плотность"/>
+					<TextBlock Text="Для алюминия:"/>
+					<TextBox Text="{Binding Sigma1, Mode=TwoWay}" Width="160"/>
+					<TextBlock Text="Для дюралюмния:"/>
+					<TextBox Text="{Binding Sigma2, Mode=TwoWay}" Width="160"/>
+					<TextBlock Text="Для магния:"/>
+					<TextBox Text="{Binding Sigma3, Mode=TwoWay}" Width="160"/>	
+				</StackPanel>
+				<StackPanel Grid.Column="1">
+					<StackPanel Margin="20" Spacing="4">
+						<Label Content="Время накопления:"/>
+						<TimePicker ClockIdentifier="24HourClock"
+									MinuteIncrement="10"
+									SelectedTime="{Binding SelectedAccumulationTime, Mode=TwoWay}"/>
+					</StackPanel>
+				</StackPanel>
+			</Grid>
 
 			<StackPanel Grid.Row="1">
 				<TextBlock Text="расчеты для отношений большого к малому зонду" VerticalAlignment="Center"/>

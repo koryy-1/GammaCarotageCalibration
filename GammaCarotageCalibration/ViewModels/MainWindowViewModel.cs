@@ -16,6 +16,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using LiveChartsCore.Geo;
 using System.Globalization;
+using DynamicData;
 
 namespace GammaCarotageCalibration.ViewModels;
 
@@ -107,6 +108,16 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref resultTableAlfa, value);
     }
 
+    private TimeSpan selectedAccumulationTime;
+    public TimeSpan SelectedAccumulationTime
+    {
+        get => selectedAccumulationTime;
+        set => this.RaiseAndSetIfChanged(ref selectedAccumulationTime, value);
+    }
+
+    private double[] largeProbe;
+    private double[] smallProbe;
+
     public ReactiveCommand<Unit, Unit> OpenLasFileForAlumCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLasFileForDuralCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLasFileForMagnesCommand { get; }
@@ -131,17 +142,14 @@ public class MainWindowViewModel : ViewModelBase
         Sigma2 = 2710;
         Sigma3 = 2850;
 
-        // todo: fix this
-        double[] largeProbe = { 205, 43, 34 };
-        double[] smallProbe = { 849, 494, 452 };
+        SelectedAccumulationTime = new TimeSpan(0, 30, 0);
+
+        smallProbe = new double[] { 849, 494, 452 };
+        largeProbe = new double[] { 205, 43, 34 };
+
         Alfa1 = Math.Round(largeProbe[0] / smallProbe[0], 6);
         Alfa2 = Math.Round(largeProbe[1] / smallProbe[1], 6);
         Alfa3 = Math.Round(largeProbe[2] / smallProbe[2], 6);
-
-        ResultTableAlfa = GetResultTable(Alfa1, Alfa2, Alfa3);
-        ResultTableLargeProbe = GetResultTable(largeProbe[0], largeProbe[1], largeProbe[2]);
-        ResultTableSmallProbe = GetResultTable(smallProbe[0], smallProbe[1], smallProbe[2]);
-        //
 
         OpenLasFileForAlumCommand = ReactiveCommand.CreateFromTask(GetLasDataForAluminum);
         OpenLasFileForDuralCommand = ReactiveCommand.CreateFromTask(GetLasDataForDuralumin);
@@ -171,15 +179,11 @@ public class MainWindowViewModel : ViewModelBase
     // и поля для их отношений
     private void ShowResults()
     {
-        double[] largeProbe = { 205, 43, 34 };
-        double[] smallProbe = { 849, 494, 452 };
-        Alfa1 = Math.Round(largeProbe[0] / smallProbe[0], 6);
-        Alfa2 = Math.Round(largeProbe[1] / smallProbe[1], 6);
-        Alfa3 = Math.Round(largeProbe[2] / smallProbe[2], 6);
+        // проверка на валидность
+        if (smallProbe.Length == 0 || largeProbe.Length == 0)
+            return;
 
-        // проверка на валидность поля
-        //if (Alfa1 == 0 || Alfa2 == 0 || Alfa3 == 0)
-        //    return;
+        // todo: урезать по времени накопления здесь
 
         ResultTableAlfa = GetResultTable(Alfa1, Alfa2, Alfa3);
         ResultTableLargeProbe = GetResultTable(largeProbe[0], largeProbe[1], largeProbe[2]);
@@ -197,18 +201,19 @@ public class MainWindowViewModel : ViewModelBase
 
     private ObservableCollection<Report> GetResultTable(double alfa1, double alfa2, double alfa3)
     {
+        //SelectedTime.TotalSeconds
         double C = 2;
-        double A = Calculator.GetCoefA(Alfa1, Alfa2, C);
-        double Q = Calculator.GetCoefQ(Alfa1, Alfa2, C, Sigma1);
+        double A = Calculator.GetCoefA(alfa1, alfa2, C);
+        double Q = Calculator.GetCoefQ(alfa1, alfa2, C, Sigma1);
 
         // нахождение расчетной плотности сигмы
-        var calcSigma1 = Calculator.CalcDensityPl(Q, A, C, Alfa1);
-        var calcSigma2 = Calculator.CalcDensityPl(Q, A, C, Alfa2);
-        var calcSigma3 = Calculator.CalcDensityPl(Q, A, C, Alfa3);
+        var calcSigma1 = Math.Round(Calculator.CalcDensityPl(Q, A, C, alfa1), 3);
+        var calcSigma2 = Math.Round(Calculator.CalcDensityPl(Q, A, C, alfa2), 3);
+        var calcSigma3 = Math.Round(Calculator.CalcDensityPl(Q, A, C, alfa3), 3);
 
-        var error1 = (Sigma1 - calcSigma1) / Sigma1 * 100;
-        var error2 = (Sigma2 - calcSigma2) / Sigma2 * 100;
-        var error3 = (Sigma3 - calcSigma3) / Sigma3 * 100;
+        var error1 = Math.Round((Sigma1 - calcSigma1) / Sigma1 * 100, 3);
+        var error2 = Math.Round((Sigma2 - calcSigma2) / Sigma2 * 100, 3);
+        var error3 = Math.Round((Sigma3 - calcSigma3) / Sigma3 * 100, 3);
 
         ObservableCollection<Report> table = new ObservableCollection<Report>()
         {
@@ -274,11 +279,6 @@ public class MainWindowViewModel : ViewModelBase
         PlotGraph(data);
     }
 
-    private void SolveEquation()
-    {
-
-    }
-
     private void PlotGraph(ObservableCollection<ObservablePoint> data)
     {
         var LineSeries = new LineSeries<ObservablePoint>
@@ -313,6 +313,12 @@ public class MainWindowViewModel : ViewModelBase
     // вопрос, если альфа для 1 материала в качестве аргумента выдает результат = эталон знач плотности,
     // то значит в формулу нужно подставлять альфу для воды (мрамора)?
 
+    private double GetAverageProbeData(LasParser lasData, string probeName)
+    {
+        int countOfSamples = Convert.ToInt32(SelectedAccumulationTime.TotalSeconds / 4);
+        return lasData.Data[probeName].Take(countOfSamples).Average().Value;
+    }
+
     private async Task GetLasDataForAluminum()
     {
         var lasData = await _lasFileReader.GetLasData();
@@ -321,10 +327,13 @@ public class MainWindowViewModel : ViewModelBase
 
         LasData[Materials.Aluminum] = lasData;
 
-        var nearProbeAverage = lasData.Data["RSD"].Average().Value;
-        var farProbeAverage = lasData.Data["RLD"].Average().Value;
+        var nearProbeAverage = GetAverageProbeData(lasData, "RSD");
+        var farProbeAverage = GetAverageProbeData(lasData, "RLD");
 
-        Alfa1 = farProbeAverage / nearProbeAverage;
+        smallProbe[0] = Math.Round(nearProbeAverage, 3);
+        largeProbe[0] = Math.Round(farProbeAverage, 3);
+
+        Alfa1 = Math.Round(farProbeAverage / nearProbeAverage, 3);
     }
 
     private async Task GetLasDataForDuralumin()
@@ -335,10 +344,13 @@ public class MainWindowViewModel : ViewModelBase
 
         LasData[Materials.Duralumin] = lasData;
 
-        var nearProbeAverage = lasData.Data["RSD"].Average().Value;
-        var farProbeAverage = lasData.Data["RLD"].Average().Value;
+        var nearProbeAverage = GetAverageProbeData(lasData, "RSD");
+        var farProbeAverage = GetAverageProbeData(lasData, "RLD");
 
-        Alfa2 = farProbeAverage / nearProbeAverage;
+        smallProbe[1] = Math.Round(nearProbeAverage, 3);
+        largeProbe[1] = Math.Round(farProbeAverage, 3);
+
+        Alfa2 = Math.Round(farProbeAverage / nearProbeAverage, 3);
     }
 
     private async Task GetLasDataForMagnesium()
@@ -349,10 +361,13 @@ public class MainWindowViewModel : ViewModelBase
 
         LasData[Materials.Magnesium] = lasData;
 
-        var nearProbeAverage = lasData.Data["RSD"].Average().Value;
-        var farProbeAverage = lasData.Data["RLD"].Average().Value;
+        var nearProbeAverage = GetAverageProbeData(lasData, "RSD");
+        var farProbeAverage = GetAverageProbeData(lasData, "RLD");
 
-        Alfa3 = farProbeAverage / nearProbeAverage;
+        smallProbe[2] = Math.Round(nearProbeAverage, 3);
+        largeProbe[2] = Math.Round(farProbeAverage, 3);
+
+        Alfa3 = Math.Round(farProbeAverage / nearProbeAverage, 3);
     }
 
     private async Task GetLasDataForMarble()
