@@ -14,11 +14,11 @@
 		<Copyright>Copyright ©  2018</Copyright>
 	</PropertyGroup>
 
-	<ItemGroup>
+	<!--<ItemGroup>
 	  <PackageReference Include="Looch.Build.Common" Version="1.0.0.9">
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
-	</ItemGroup>
+	</ItemGroup>-->
 
 </Project>

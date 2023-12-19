@@ -54,12 +54,12 @@
 				</Grid.ColumnDefinitions>
 				<StackPanel Grid.Column="0">
 					<TextBlock Text="Плотность"/>
-					<TextBlock Text="Для алюминия:"/>
-					<TextBox Text="{Binding Sigma1, Mode=TwoWay}" Width="160"/>
-					<TextBlock Text="Для дюралюмния:"/>
-					<TextBox Text="{Binding Sigma2, Mode=TwoWay}" Width="160"/>
 					<TextBlock Text="Для магния:"/>
-					<TextBox Text="{Binding Sigma3, Mode=TwoWay}" Width="160"/>	
+					<TextBox Text="{Binding SigmaMagn, Mode=TwoWay}" Width="160"/>	
+					<TextBlock Text="Для алюминия:"/>
+					<TextBox Text="{Binding SigmaAl, Mode=TwoWay}" Width="160"/>
+					<TextBlock Text="Для дюралюмния:"/>
+					<TextBox Text="{Binding SigmaDural, Mode=TwoWay}" Width="160"/>
 				</StackPanel>
 				<StackPanel Grid.Column="1">
 					<StackPanel Margin="20" Spacing="4">
