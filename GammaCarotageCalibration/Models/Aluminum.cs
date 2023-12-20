@@ -12,10 +12,10 @@ namespace GammaCarotageCalibration.Models
         public ProbeMetrics ProbeMetrics { get; set; }
         public Materials MaterialType { get; set; }
 
-        public Aluminum(double sigma, double?[] smallProbe, double?[] largeProbe, double totalSeconds)
+        public Aluminum(double sigma, double?[] smallProbe, double?[] largeProbe, TimeSpan selectedAccumulationTime)
         {
             Sigma = sigma;
-            ProbeMetrics = new ProbeMetrics(smallProbe, largeProbe, totalSeconds);
+            ProbeMetrics = new ProbeMetrics(smallProbe, largeProbe, selectedAccumulationTime);
             MaterialType = Materials.Aluminum;
         }
 
