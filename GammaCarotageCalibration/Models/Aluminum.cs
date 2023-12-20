@@ -6,10 +6,23 @@ using System.Threading.Tasks;
 
 namespace GammaCarotageCalibration.Models
 {
-    public class Aluminum : Material
+    public class Aluminum : IMaterial
     {
-        public Aluminum()
+        public double Sigma { get; set; }
+        public ProbeMetrics ProbeMetrics { get; set; }
+        public Materials MaterialType { get; set; }
+
+        public Aluminum(double sigma, double?[] smallProbe, double?[] largeProbe, double totalSeconds)
         {
+            Sigma = sigma;
+            ProbeMetrics = new ProbeMetrics(smallProbe, largeProbe, totalSeconds);
+            MaterialType = Materials.Aluminum;
+        }
+
+        public Aluminum(double sigma, double averageSmallProbe, double averageLargeProbe)
+        {
+            Sigma = sigma;
+            ProbeMetrics = new ProbeMetrics(averageSmallProbe, averageLargeProbe);
             MaterialType = Materials.Aluminum;
         }
     }

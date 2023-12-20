@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace GammaCarotageCalibration.Models
 {
-    public class Material
+    public interface IMaterial
     {
         public double Sigma { get; set; }
-        public Materials MaterialType { get; set; }
         ProbeMetrics ProbeMetrics { get; set; }
     }
 }

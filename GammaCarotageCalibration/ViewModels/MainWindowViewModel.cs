@@ -47,46 +47,6 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _probeSeries, value);
     }
 
-    private double sigmaAl;
-    public double SigmaAl
-    {
-        get => sigmaAl;
-        set => this.RaiseAndSetIfChanged(ref sigmaAl, value);
-    }
-    private double sigmaDural;
-    public double SigmaDural
-    {
-        get => sigmaDural;
-        set => this.RaiseAndSetIfChanged(ref sigmaDural, value);
-    }
-    private double sigmaMagn;
-    public double SigmaMagn
-    {
-        get => sigmaMagn;
-        set => this.RaiseAndSetIfChanged(ref sigmaMagn, value);
-    }
-
-    private double alfaAl;
-    public double AlfaAl
-    {
-        get => alfaAl;
-        set => this.RaiseAndSetIfChanged(ref alfaAl, value);
-    }
-
-    private double alfaDural;
-    public double AlfaDural
-    {
-        get => alfaDural;
-        set => this.RaiseAndSetIfChanged(ref alfaDural, value);
-    }
-
-    private double alfaMagn;
-    public double AlfaMagn
-    {
-        get => alfaMagn;
-        set => this.RaiseAndSetIfChanged(ref alfaMagn, value);
-    }
-
     private ObservableCollection<Report> resultTableSmallProbe;
     public ObservableCollection<Report> ResultTableSmallProbe
     {
@@ -112,17 +72,14 @@ public class MainWindowViewModel : ViewModelBase
     public TimeSpan SelectedAccumulationTime
     {
         get => selectedAccumulationTime;
-        set
-        {
-            if (Convert.ToInt32(value.TotalSeconds / 4) < Convert.ToInt32(selectedAccumulationTime.TotalSeconds / 4))
-            {
-                this.RaiseAndSetIfChanged(ref selectedAccumulationTime, value);
-            }
-        }
+        set => this.RaiseAndSetIfChanged(ref selectedAccumulationTime, value);
     }
 
-    private double[] largeProbe;
-    private double[] smallProbe;
+    private int countOfSamples;
+
+    public IMaterial Aluminum { get; set; }
+    public IMaterial Duralumin { get; set; }
+    public IMaterial Magnesium { get; set; }
 
     public ReactiveCommand<Unit, Unit> OpenLasFileForAlumCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLasFileForDuralCommand { get; }
@@ -144,22 +101,15 @@ public class MainWindowViewModel : ViewModelBase
             { Materials.Marble, null }
         };
 
-        SigmaMagn = 1880;
-        SigmaAl = 2710;
-        SigmaDural = 2850;
+        Magnesium = new Magnesium(1880, 849, 205);
+        Aluminum = new Aluminum(2710, 494, 43);
+        Duralumin = new Duralumin(2850, 452, 34);
 
         SelectedAccumulationTime = new TimeSpan(0, 30, 0);
 
-        smallProbe = new double[] { 849, 494, 452 };
-        largeProbe = new double[] { 205, 43, 34 };
-
-        AlfaMagn = Math.Round(largeProbe[0] / smallProbe[0], 6);
-        AlfaAl = Math.Round(largeProbe[1] / smallProbe[1], 6);
-        AlfaDural = Math.Round(largeProbe[2] / smallProbe[2], 6);
-
-        ResultTableAlfa = GetResultTable(AlfaMagn, AlfaAl, AlfaDural);
-        ResultTableLargeProbe = GetResultTable(largeProbe[0], largeProbe[1], largeProbe[2]);
-        ResultTableSmallProbe = GetResultTable(smallProbe[0], smallProbe[1], smallProbe[2]);
+        ResultTableAlfa = GetResultTable(Magnesium.ProbeMetrics.Alfa, Aluminum.ProbeMetrics.Alfa, Duralumin.ProbeMetrics.Alfa);
+        ResultTableLargeProbe = GetResultTable(Magnesium.ProbeMetrics.AverageLargeProbe, Aluminum.ProbeMetrics.AverageLargeProbe, Duralumin.ProbeMetrics.AverageLargeProbe);
+        ResultTableSmallProbe = GetResultTable(Magnesium.ProbeMetrics.AverageSmallProbe, Aluminum.ProbeMetrics.AverageSmallProbe, Duralumin.ProbeMetrics.AverageSmallProbe);
 
         OpenLasFileForAlumCommand = ReactiveCommand.CreateFromTask(GetLasDataForAluminum);
         OpenLasFileForDuralCommand = ReactiveCommand.CreateFromTask(GetLasDataForDuralumin);
@@ -192,13 +142,17 @@ public class MainWindowViewModel : ViewModelBase
         // Magnesium
         if (LasData[Materials.Magnesium] is not null)
         {
-            var nearProbeAverage = GetAverageProbeData(LasData[Materials.Magnesium], "RSD");
-            var farProbeAverage = GetAverageProbeData(LasData[Materials.Magnesium], "RLD");
+            Magnesium.ProbeMetrics = new ProbeMetrics(
+                LasData[Materials.Magnesium].Data["RSD"],
+                LasData[Materials.Magnesium].Data["RSD"],
+                SelectedAccumulationTime
+            );
 
-            smallProbe[0] = Math.Round(nearProbeAverage, 3);
-            largeProbe[0] = Math.Round(farProbeAverage, 3);
-
-            AlfaMagn = Math.Round(farProbeAverage / nearProbeAverage, 3);
+            Magnesium.ProbeMetrics.CountOfSamples = LasData[Materials.Magnesium].Data["TIME"].Length;
+            if (Magnesium.ProbeMetrics.CountOfSamples < countOfSamples)
+            {
+                countOfSamples = Magnesium.ProbeMetrics.CountOfSamples;
+            }
         }
 
         // Aluminum
@@ -207,10 +161,16 @@ public class MainWindowViewModel : ViewModelBase
             var nearProbeAverage = GetAverageProbeData(LasData[Materials.Aluminum], "RSD");
             var farProbeAverage = GetAverageProbeData(LasData[Materials.Aluminum], "RLD");
 
-            smallProbe[1] = Math.Round(nearProbeAverage, 3);
-            largeProbe[1] = Math.Round(farProbeAverage, 3);
+            Aluminum.ProbeMetrics.AverageSmallProbe = Math.Round(nearProbeAverage, 3);
+            Aluminum.ProbeMetrics.AverageLargeProbe = Math.Round(farProbeAverage, 3);
 
-            AlfaAl = Math.Round(farProbeAverage / nearProbeAverage, 3);
+            Aluminum.ProbeMetrics.Alfa = Math.Round(farProbeAverage / nearProbeAverage, 3);
+
+            Aluminum.ProbeMetrics.CountOfSamples = LasData[Materials.Aluminum].Data["TIME"].Length;
+            if (Aluminum.ProbeMetrics.CountOfSamples < countOfSamples)
+            {
+                countOfSamples = Aluminum.ProbeMetrics.CountOfSamples;
+            }
         }
 
         // Duralumin
@@ -219,29 +179,35 @@ public class MainWindowViewModel : ViewModelBase
             var nearProbeAverage = GetAverageProbeData(LasData[Materials.Duralumin], "RSD");
             var farProbeAverage = GetAverageProbeData(LasData[Materials.Duralumin], "RLD");
 
-            smallProbe[2] = Math.Round(nearProbeAverage, 3);
-            largeProbe[2] = Math.Round(farProbeAverage, 3);
+            Duralumin.ProbeMetrics.AverageSmallProbe = Math.Round(nearProbeAverage, 3);
+            Duralumin.ProbeMetrics.AverageLargeProbe = Math.Round(farProbeAverage, 3);
 
-            AlfaDural = Math.Round(farProbeAverage / nearProbeAverage, 3);
+            Duralumin.ProbeMetrics.Alfa = Math.Round(farProbeAverage / nearProbeAverage, 3);
+
+            Duralumin.ProbeMetrics.CountOfSamples = LasData[Materials.Duralumin].Data["TIME"].Length;
+            if (Duralumin.ProbeMetrics.CountOfSamples < countOfSamples)
+            {
+                countOfSamples = Duralumin.ProbeMetrics.CountOfSamples;
+            }
         }
     }
     private void ShowResults()
     {
         // проверка на валидность
-        if (smallProbe.Length == 0 || largeProbe.Length == 0)
+        if (Magnesium is null || Aluminum is null || Duralumin is null)
             return;
 
         GetCurrentProbeMetrics();
 
-        ResultTableAlfa = GetResultTable(AlfaMagn, AlfaAl, AlfaDural);
-        ResultTableLargeProbe = GetResultTable(largeProbe[0], largeProbe[1], largeProbe[2]);
-        ResultTableSmallProbe = GetResultTable(smallProbe[0], smallProbe[1], smallProbe[2]);
+        ResultTableAlfa = GetResultTable(Magnesium.ProbeMetrics.Alfa, Aluminum.ProbeMetrics.Alfa, Duralumin.ProbeMetrics.Alfa);
+        ResultTableLargeProbe = GetResultTable(Magnesium.ProbeMetrics.AverageLargeProbe, Aluminum.ProbeMetrics.AverageLargeProbe, Duralumin.ProbeMetrics.AverageLargeProbe);
+        ResultTableSmallProbe = GetResultTable(Magnesium.ProbeMetrics.AverageSmallProbe, Aluminum.ProbeMetrics.AverageSmallProbe, Duralumin.ProbeMetrics.AverageSmallProbe);
 
         ObservableCollection<ObservablePoint> data = new ObservableCollection<ObservablePoint>
         {
-            new ObservablePoint(AlfaDural, SigmaDural),
-            new ObservablePoint(AlfaAl, SigmaAl),
-            new ObservablePoint(AlfaMagn, SigmaMagn),
+            new ObservablePoint(Duralumin.ProbeMetrics.Alfa, Duralumin.Sigma),
+            new ObservablePoint(Aluminum.ProbeMetrics.Alfa, Aluminum.Sigma),
+            new ObservablePoint(Magnesium.ProbeMetrics.Alfa, Magnesium.Sigma),
         };
 
         PlotGraph(data);
@@ -252,33 +218,33 @@ public class MainWindowViewModel : ViewModelBase
         // todo: вывод кэфов на ГУИ
         double C = 2;
         double A = Calculator.GetCoefA(alfaMagn, alfaAl, C);
-        double Q = Calculator.GetCoefQ(alfaMagn, alfaAl, C, SigmaMagn);
+        double Q = Calculator.GetCoefQ(alfaMagn, alfaAl, C, Magnesium.Sigma);
 
         // нахождение расчетной плотности сигмы
         var calcSigmaMagn = Math.Round(Calculator.CalcDensityPl(Q, A, C, alfaMagn), 3);
         var calcSigmaAl = Math.Round(Calculator.CalcDensityPl(Q, A, C, alfaAl), 3);
         var calcSigmaDural = Math.Round(Calculator.CalcDensityPl(Q, A, C, alfaDural), 3);
 
-        var errorMagn = Math.Round((SigmaMagn - calcSigmaMagn) / SigmaMagn * 100, 3);
-        var errorAl = Math.Round((SigmaAl - calcSigmaAl) / SigmaAl * 100, 3);
-        var errorDural = Math.Round((SigmaDural - calcSigmaDural) / SigmaDural * 100, 3);
+        var errorMagn = Math.Round((Magnesium.Sigma - calcSigmaMagn) / Magnesium.Sigma * 100, 3);
+        var errorAl = Math.Round((Aluminum.Sigma - calcSigmaAl) / Aluminum.Sigma * 100, 3);
+        var errorDural = Math.Round((Duralumin.Sigma - calcSigmaDural) / Duralumin.Sigma * 100, 3);
 
         ObservableCollection<Report> table = new ObservableCollection<Report>()
         {
             new Report(
-                SigmaMagn,
+                Magnesium.Sigma,
                 alfaMagn,
                 calcSigmaMagn,
                 errorMagn
             ),
             new Report(
-                SigmaAl,
+                Aluminum.Sigma,
                 alfaAl,
                 calcSigmaAl,
                 errorAl
             ),
             new Report(
-                SigmaDural,
+                Duralumin.Sigma,
                 alfaDural,
                 calcSigmaDural,
                 errorDural
@@ -286,45 +252,6 @@ public class MainWindowViewModel : ViewModelBase
         };
 
         return table;
-    }
-
-    private void OldShowResults()
-    {
-        // проверка на валидность поля
-        if (AlfaAl == 0 || AlfaDural == 0 || AlfaMagn == 0)
-            return;
-
-        // расчет А В С
-        double sigma1 = 1880;
-        double sigma2 = 2710;
-        double sigma3 = 2850;
-
-        var A = Calculator.GetCoefA(
-            AlfaAl, AlfaDural, AlfaMagn,
-            sigma1, sigma2, sigma3
-        );
-        var B = Calculator.GetCoefB(
-            AlfaAl, AlfaDural, AlfaMagn,
-            sigma1, sigma2, sigma3
-        );
-        var C = Calculator.GetCoefC(
-            AlfaAl, AlfaDural, AlfaMagn,
-            sigma1, sigma2, sigma3
-        );
-
-        // нахождение расчетной плотности сигмы
-        var calcSigma1 = Calculator.CalculateDensity(A, B, C, AlfaAl);
-        var calcSigma2 = Calculator.CalculateDensity(A, B, C, AlfaDural);
-        var calcSigma3 = Calculator.CalculateDensity(A, B, C, AlfaMagn);
-
-        ObservableCollection<ObservablePoint> data = new ObservableCollection<ObservablePoint>
-        {
-            new ObservablePoint(AlfaAl, sigma1),
-            new ObservablePoint(AlfaDural, sigma2),
-            new ObservablePoint(AlfaMagn, sigma3)
-        };
-
-        PlotGraph(data);
     }
 
     private void PlotGraph(ObservableCollection<ObservablePoint> data)
@@ -348,18 +275,6 @@ public class MainWindowViewModel : ViewModelBase
             LineSeries,
         };
     }
-
-    // todo: кнопка произвести расчеты
-    // и построить апроксимирующий график
-
-    // алгоритм следующий
-    // сначала вычисляем альфу для воды
-    // потом вычисляем альфы для 3-х материалов
-    // потом строим график эталонных значений плотности от альфы для каждого материала
-    // вычисляем кэфы А В и С
-    // далее с помощью метода Calculator.CalculateDensity вычисляем градуировочную хар-ку (расч плотность)
-    // вопрос, если альфа для 1 материала в качестве аргумента выдает результат = эталон знач плотности,
-    // то значит в формулу нужно подставлять альфу для воды (мрамора)?
 
     private double GetAverageProbeData(LasParser lasData, string probeName)
     {
