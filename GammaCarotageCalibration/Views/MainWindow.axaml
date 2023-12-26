@@ -17,7 +17,7 @@
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="200"/>
-			<ColumnDefinition Width="620"/>
+			<ColumnDefinition Width="600"/>
 			<ColumnDefinition Width="*"/>
 		</Grid.ColumnDefinitions>
 
@@ -41,7 +41,8 @@
 
 		<Grid Grid.Column="1" Margin="20,0,0,0">
 			<Grid.RowDefinitions>
-				<RowDefinition Height="200"/>
+				<RowDefinition Height="160"/>
+				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="*"/>
@@ -72,7 +73,22 @@
 			</Grid>
 
 			<StackPanel Grid.Row="1">
-				<TextBlock Text="расчеты для отношений большого к малому зонду" VerticalAlignment="Center"/>
+				<DataGrid Margin="20" ItemsSource="{Binding CoefTable, Mode=TwoWay}"
+					  IsReadOnly="True"
+					  CanUserResizeColumns="True"
+					  CanUserSortColumns="False"
+					  GridLinesVisibility="All"
+					  BorderThickness="1" BorderBrush="Gray">
+					<DataGrid.Columns>
+						<DataGridTextColumn Header="Q" Width="*" Binding="{Binding Q}"/>
+						<DataGridTextColumn Header="A" Width="*" Binding="{Binding A}" />
+						<DataGridTextColumn Header="C" Width="*" Binding="{Binding C}"/>
+					</DataGrid.Columns>
+				</DataGrid>
+			</StackPanel>
+
+			<StackPanel Grid.Row="2">
+				<!--<TextBlock Text="расчеты для отношений большого к малому зонду" VerticalAlignment="Center"/>-->
 				<DataGrid Margin="20" ItemsSource="{Binding ResultTableAlfa, Mode=TwoWay}"
 					  IsReadOnly="True"
 					  CanUserResizeColumns="True"
@@ -80,16 +96,16 @@
 					  GridLinesVisibility="All"
 					  BorderThickness="1" BorderBrush="Gray">
 					<DataGrid.Columns>
-						<DataGridTextColumn Header="Плотность"  Binding="{Binding Density}"/>
-						<DataGridTextColumn Header="Показания зонда" Binding="{Binding ProbeData}" />
-						<DataGridTextColumn Header="Расчетная плотность"  Binding="{Binding CalculatedDensity}"/>
-						<DataGridTextColumn Header="Погрешность" Binding="{Binding MeasurementError}" />
+						<DataGridTextColumn Header="Плотность" Width="*" Binding="{Binding Density}"/>
+						<DataGridTextColumn Header="Отношение Б/М" Width="*" Binding="{Binding ProbeData}" />
+						<DataGridTextColumn Header="Расч плотность" Width="*" Binding="{Binding CalculatedDensity}"/>
+						<DataGridTextColumn Header="Погрешность" Width="*" Binding="{Binding MeasurementError}" />
 					</DataGrid.Columns>
 				</DataGrid>
 			</StackPanel>
 
-			<StackPanel Grid.Row="2">
-				<TextBlock Text="расчеты для большого зонда" VerticalAlignment="Center"/>
+			<StackPanel Grid.Row="3">
+				<!--<TextBlock Text="расчеты для большого зонда" VerticalAlignment="Center"/>-->
 				<DataGrid Margin="20" ItemsSource="{Binding ResultTableLargeProbe, Mode=TwoWay}"
 					  IsReadOnly="True"
 					  CanUserResizeColumns="True"
@@ -97,16 +113,16 @@
 					  GridLinesVisibility="All"
 					  BorderThickness="1" BorderBrush="Gray">
 					<DataGrid.Columns>
-						<DataGridTextColumn Header="Плотность"  Binding="{Binding Density}"/>
-						<DataGridTextColumn Header="Показания зонда" Binding="{Binding ProbeData}" />
-						<DataGridTextColumn Header="Расчетная плотность"  Binding="{Binding CalculatedDensity}"/>
-						<DataGridTextColumn Header="Погрешность" Binding="{Binding MeasurementError}" />
+						<DataGridTextColumn Header="Плотность" Width="*" Binding="{Binding Density}"/>
+						<DataGridTextColumn Header="Метрики Б зонда" Width="*" Binding="{Binding ProbeData}" />
+						<DataGridTextColumn Header="Расч плотность" Width="*" Binding="{Binding CalculatedDensity}"/>
+						<DataGridTextColumn Header="Погрешность" Width="*" Binding="{Binding MeasurementError}" />
 					</DataGrid.Columns>
 				</DataGrid>
 			</StackPanel>
 
-			<StackPanel Grid.Row="3">
-				<TextBlock Text="расчеты для малого зонда" VerticalAlignment="Center"/>
+			<StackPanel Grid.Row="4">
+				<!--<TextBlock Text="расчеты для малого зонда" VerticalAlignment="Center"/>-->
 				<DataGrid Margin="20" ItemsSource="{Binding ResultTableSmallProbe, Mode=TwoWay}"
 					  IsReadOnly="True"
 					  CanUserResizeColumns="True"
@@ -114,10 +130,10 @@
 					  GridLinesVisibility="All"
 					  BorderThickness="1" BorderBrush="Gray">
 					<DataGrid.Columns>
-						<DataGridTextColumn Header="Плотность"  Binding="{Binding Density}"/>
-						<DataGridTextColumn Header="Показания зонда" Binding="{Binding ProbeData}" />
-						<DataGridTextColumn Header="Расчетная плотность"  Binding="{Binding CalculatedDensity}"/>
-						<DataGridTextColumn Header="Погрешность" Binding="{Binding MeasurementError}" />
+						<DataGridTextColumn Header="Плотность" Width="*" Binding="{Binding Density}"/>
+						<DataGridTextColumn Header="Метрики М зонда" Width="*" Binding="{Binding ProbeData}" />
+						<DataGridTextColumn Header="Расч плотность" Width="*" Binding="{Binding CalculatedDensity}"/>
+						<DataGridTextColumn Header="Погрешность" Width="*" Binding="{Binding MeasurementError}" />
 					</DataGrid.Columns>
 				</DataGrid>
 			</StackPanel>

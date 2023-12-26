@@ -47,6 +47,13 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _probeSeries, value);
     }
 
+    private ObservableCollection<Coefficients> coefTable;
+    public ObservableCollection<Coefficients> CoefTable
+    {
+        get => coefTable;
+        set => this.RaiseAndSetIfChanged(ref coefTable, value);
+    }
+
     private ObservableCollection<Report> resultTableSmallProbe;
     public ObservableCollection<Report> ResultTableSmallProbe
     {
@@ -107,9 +114,11 @@ public class MainWindowViewModel : ViewModelBase
 
         SelectedAccumulationTime = new TimeSpan(0, 30, 0);
 
-        ResultTableAlfa = GetResultTable(Magnesium.ProbeMetrics.Alfa, Aluminum.ProbeMetrics.Alfa, Duralumin.ProbeMetrics.Alfa);
-        ResultTableLargeProbe = GetResultTable(Magnesium.ProbeMetrics.AverageLargeProbe, Aluminum.ProbeMetrics.AverageLargeProbe, Duralumin.ProbeMetrics.AverageLargeProbe);
-        ResultTableSmallProbe = GetResultTable(Magnesium.ProbeMetrics.AverageSmallProbe, Aluminum.ProbeMetrics.AverageSmallProbe, Duralumin.ProbeMetrics.AverageSmallProbe);
+        CoefTable = GetCoefs(Magnesium.ProbeMetrics, Aluminum.ProbeMetrics, Duralumin.ProbeMetrics);
+
+        ResultTableAlfa = GetResultTable(CoefTable[0], Magnesium.ProbeMetrics.Alfa, Aluminum.ProbeMetrics.Alfa, Duralumin.ProbeMetrics.Alfa);
+        ResultTableLargeProbe = GetResultTable(CoefTable[1], Magnesium.ProbeMetrics.AverageLargeProbe, Aluminum.ProbeMetrics.AverageLargeProbe, Duralumin.ProbeMetrics.AverageLargeProbe);
+        ResultTableSmallProbe = GetResultTable(CoefTable[2], Magnesium.ProbeMetrics.AverageSmallProbe, Aluminum.ProbeMetrics.AverageSmallProbe, Duralumin.ProbeMetrics.AverageSmallProbe);
 
         OpenLasFileForAlumCommand = ReactiveCommand.CreateFromTask(GetLasDataForAluminum);
         OpenLasFileForDuralCommand = ReactiveCommand.CreateFromTask(GetLasDataForDuralumin);
@@ -199,9 +208,11 @@ public class MainWindowViewModel : ViewModelBase
 
         GetCurrentProbeMetrics();
 
-        ResultTableAlfa = GetResultTable(Magnesium.ProbeMetrics.Alfa, Aluminum.ProbeMetrics.Alfa, Duralumin.ProbeMetrics.Alfa);
-        ResultTableLargeProbe = GetResultTable(Magnesium.ProbeMetrics.AverageLargeProbe, Aluminum.ProbeMetrics.AverageLargeProbe, Duralumin.ProbeMetrics.AverageLargeProbe);
-        ResultTableSmallProbe = GetResultTable(Magnesium.ProbeMetrics.AverageSmallProbe, Aluminum.ProbeMetrics.AverageSmallProbe, Duralumin.ProbeMetrics.AverageSmallProbe);
+        CoefTable = GetCoefs(Magnesium.ProbeMetrics, Aluminum.ProbeMetrics, Duralumin.ProbeMetrics);
+
+        ResultTableAlfa = GetResultTable(CoefTable[0], Magnesium.ProbeMetrics.Alfa, Aluminum.ProbeMetrics.Alfa, Duralumin.ProbeMetrics.Alfa);
+        ResultTableLargeProbe = GetResultTable(CoefTable[1], Magnesium.ProbeMetrics.AverageLargeProbe, Aluminum.ProbeMetrics.AverageLargeProbe, Duralumin.ProbeMetrics.AverageLargeProbe);
+        ResultTableSmallProbe = GetResultTable(CoefTable[2], Magnesium.ProbeMetrics.AverageSmallProbe, Aluminum.ProbeMetrics.AverageSmallProbe, Duralumin.ProbeMetrics.AverageSmallProbe);
 
         ObservableCollection<ObservablePoint> data = new ObservableCollection<ObservablePoint>
         {
@@ -213,17 +224,42 @@ public class MainWindowViewModel : ViewModelBase
         PlotGraph(data);
     }
 
-    private ObservableCollection<Report> GetResultTable(double alfaMagn, double alfaAl, double alfaDural)
+    private ObservableCollection<Coefficients> GetCoefs(ProbeMetrics magnesium, ProbeMetrics aluminum, ProbeMetrics duralumin)
     {
-        // todo: вывод кэфов на ГУИ
         double C = 2;
-        double A = Calculator.GetCoefA(alfaMagn, alfaAl, C);
-        double Q = Calculator.GetCoefQ(alfaMagn, alfaAl, C, Magnesium.Sigma);
+
+        ObservableCollection<Coefficients> table = new ObservableCollection<Coefficients>()
+        {
+            new Coefficients {
+                Q = Math.Round(Calculator.GetCoefQ(magnesium.Alfa, aluminum.Alfa, C, Magnesium.Sigma), 1),
+                A = Math.Round(Calculator.GetCoefA(magnesium.Alfa, aluminum.Alfa, C), 1),
+                C = C,
+            },
+            new Coefficients {
+                Q = Math.Round(Calculator.GetCoefQ(magnesium.AverageLargeProbe, aluminum.AverageLargeProbe, C, Magnesium.Sigma), 1),
+                A = Math.Round(Calculator.GetCoefA(magnesium.AverageLargeProbe, aluminum.AverageLargeProbe, C), 1),
+                C = C,
+            },
+            new Coefficients {
+                Q = Math.Round(Calculator.GetCoefQ(magnesium.AverageSmallProbe, aluminum.AverageSmallProbe, C, Magnesium.Sigma), 1),
+                A = Math.Round(Calculator.GetCoefA(magnesium.AverageSmallProbe, aluminum.AverageSmallProbe, C), 1),
+                C = C,
+            },
+        };
+
+        return table;
+    }
+
+    private ObservableCollection<Report> GetResultTable(Coefficients coefficients, double alfaMagn, double alfaAl, double alfaDural)
+    {
+        //double C = 2;
+        //double A = Calculator.GetCoefA(alfaMagn, alfaAl, C);
+        //double Q = Calculator.GetCoefQ(alfaMagn, alfaAl, C, Magnesium.Sigma);
 
         // нахождение расчетной плотности сигмы
-        var calcSigmaMagn = Math.Round(Calculator.CalcDensityPl(Q, A, C, alfaMagn), 3);
-        var calcSigmaAl = Math.Round(Calculator.CalcDensityPl(Q, A, C, alfaAl), 3);
-        var calcSigmaDural = Math.Round(Calculator.CalcDensityPl(Q, A, C, alfaDural), 3);
+        var calcSigmaMagn = Math.Round(Calculator.CalcDensityPl(coefficients.Q, coefficients.A, coefficients.C, alfaMagn), 3);
+        var calcSigmaAl = Math.Round(Calculator.CalcDensityPl(coefficients.Q, coefficients.A, coefficients.C, alfaAl), 3);
+        var calcSigmaDural = Math.Round(Calculator.CalcDensityPl(coefficients.Q, coefficients.A, coefficients.C, alfaDural), 3);
 
         var errorMagn = Math.Round((Magnesium.Sigma - calcSigmaMagn) / Magnesium.Sigma * 100, 3);
         var errorAl = Math.Round((Aluminum.Sigma - calcSigmaAl) / Aluminum.Sigma * 100, 3);
