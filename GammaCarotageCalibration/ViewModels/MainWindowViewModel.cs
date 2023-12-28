@@ -88,6 +88,34 @@ public class MainWindowViewModel : ViewModelBase
     public IMaterial Duralumin { get; set; }
     public IMaterial Magnesium { get; set; }
 
+    private string metaDataAl;
+    public string MetaDataAl
+    {
+        get => metaDataAl;
+        set => this.RaiseAndSetIfChanged(ref metaDataAl, value);
+    }
+
+    private string metaDataDural;
+    public string MetaDataDural
+    {
+        get => metaDataDural;
+        set => this.RaiseAndSetIfChanged(ref metaDataDural, value);
+    }
+
+    private string metaDataMagn;
+    public string MetaDataMagn
+    {
+        get => metaDataMagn;
+        set => this.RaiseAndSetIfChanged(ref metaDataMagn, value);
+    }
+
+    private string metaDataMarble;
+    public string MetaDataMarble
+    {
+        get => metaDataMarble;
+        set => this.RaiseAndSetIfChanged(ref metaDataMarble, value);
+    }
+
     public ReactiveCommand<Unit, Unit> OpenLasFileForAlumCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLasFileForDuralCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenLasFileForMagnesCommand { get; }
@@ -231,16 +259,19 @@ public class MainWindowViewModel : ViewModelBase
         ObservableCollection<Coefficients> table = new ObservableCollection<Coefficients>()
         {
             new Coefficients {
+                Description = "Отн Б/М",
                 Q = Math.Round(Calculator.GetCoefQ(magnesium.Alfa, aluminum.Alfa, C, Magnesium.Sigma), 1),
                 A = Math.Round(Calculator.GetCoefA(magnesium.Alfa, aluminum.Alfa, C), 1),
                 C = C,
             },
             new Coefficients {
+                Description = "Для Б зонда",
                 Q = Math.Round(Calculator.GetCoefQ(magnesium.AverageLargeProbe, aluminum.AverageLargeProbe, C, Magnesium.Sigma), 1),
                 A = Math.Round(Calculator.GetCoefA(magnesium.AverageLargeProbe, aluminum.AverageLargeProbe, C), 1),
                 C = C,
             },
             new Coefficients {
+                Description = "Для М зонда",
                 Q = Math.Round(Calculator.GetCoefQ(magnesium.AverageSmallProbe, aluminum.AverageSmallProbe, C, Magnesium.Sigma), 1),
                 A = Math.Round(Calculator.GetCoefA(magnesium.AverageSmallProbe, aluminum.AverageSmallProbe, C), 1),
                 C = C,
@@ -252,38 +283,34 @@ public class MainWindowViewModel : ViewModelBase
 
     private ObservableCollection<Report> GetResultTable(Coefficients coefficients, double alfaMagn, double alfaAl, double alfaDural)
     {
-        //double C = 2;
-        //double A = Calculator.GetCoefA(alfaMagn, alfaAl, C);
-        //double Q = Calculator.GetCoefQ(alfaMagn, alfaAl, C, Magnesium.Sigma);
-
         // нахождение расчетной плотности сигмы
-        var calcSigmaMagn = Math.Round(Calculator.CalcDensityPl(coefficients.Q, coefficients.A, coefficients.C, alfaMagn), 3);
-        var calcSigmaAl = Math.Round(Calculator.CalcDensityPl(coefficients.Q, coefficients.A, coefficients.C, alfaAl), 3);
-        var calcSigmaDural = Math.Round(Calculator.CalcDensityPl(coefficients.Q, coefficients.A, coefficients.C, alfaDural), 3);
+        var calcSigmaMagn = Calculator.CalcDensityPl(coefficients.Q, coefficients.A, coefficients.C, alfaMagn);
+        var calcSigmaAl = Calculator.CalcDensityPl(coefficients.Q, coefficients.A, coefficients.C, alfaAl);
+        var calcSigmaDural = Calculator.CalcDensityPl(coefficients.Q, coefficients.A, coefficients.C, alfaDural);
 
-        var errorMagn = Math.Round((Magnesium.Sigma - calcSigmaMagn) / Magnesium.Sigma * 100, 3);
-        var errorAl = Math.Round((Aluminum.Sigma - calcSigmaAl) / Aluminum.Sigma * 100, 3);
-        var errorDural = Math.Round((Duralumin.Sigma - calcSigmaDural) / Duralumin.Sigma * 100, 3);
+        var errorMagn = (Magnesium.Sigma - calcSigmaMagn) / Magnesium.Sigma * 100;
+        var errorAl = (Aluminum.Sigma - calcSigmaAl) / Aluminum.Sigma * 100;
+        var errorDural = (Duralumin.Sigma - calcSigmaDural) / Duralumin.Sigma * 100;
 
         ObservableCollection<Report> table = new ObservableCollection<Report>()
         {
             new Report(
                 Magnesium.Sigma,
-                alfaMagn,
-                calcSigmaMagn,
-                errorMagn
+                alfaMagn.ToString("F3"),
+                calcSigmaMagn.ToString("F3"),
+                errorMagn.ToString("F3")
             ),
             new Report(
                 Aluminum.Sigma,
-                alfaAl,
-                calcSigmaAl,
-                errorAl
+                alfaAl.ToString("F3"),
+                calcSigmaAl.ToString("F3"),
+                errorAl.ToString("F3")
             ),
             new Report(
                 Duralumin.Sigma,
-                alfaDural,
-                calcSigmaDural,
-                errorDural
+                alfaDural.ToString("F3"),
+                calcSigmaDural.ToString("F3"),
+                errorDural.ToString("F3")
             ),
         };
 
@@ -318,6 +345,15 @@ public class MainWindowViewModel : ViewModelBase
         return lasData.Data[probeName].Take(countOfSamples).Average().Value;
     }
 
+    private string GetDateAndSerialNum(LasParser lasData)
+    {
+        var dateIdx = lasData.Wmnem.IndexOf("DATE");
+        var date = dateIdx != -1 ? lasData.Wvalue[dateIdx].Replace("/", ".") : string.Empty;
+        var serialNumberIdx = lasData.Wmnem.IndexOf("SNUM");
+        var serialNumber = serialNumberIdx != -1 ? lasData.Wvalue[serialNumberIdx] : string.Empty;
+        return $"Дата: {date}\nНомер прибора: {serialNumber}";
+    }
+
     private async Task GetLasDataForAluminum()
     {
         var lasData = await _lasFileReader.GetLasData();
@@ -325,6 +361,8 @@ public class MainWindowViewModel : ViewModelBase
             return;
 
         LasData[Materials.Aluminum] = lasData;
+
+        MetaDataAl = GetDateAndSerialNum(lasData);
     }
 
     private async Task GetLasDataForDuralumin()
@@ -334,6 +372,8 @@ public class MainWindowViewModel : ViewModelBase
             return;
 
         LasData[Materials.Duralumin] = lasData;
+
+        MetaDataDural = GetDateAndSerialNum(lasData);
     }
 
     private async Task GetLasDataForMagnesium()
@@ -343,6 +383,8 @@ public class MainWindowViewModel : ViewModelBase
             return;
 
         LasData[Materials.Magnesium] = lasData;
+
+        MetaDataMagn = GetDateAndSerialNum(lasData);
     }
 
     private async Task GetLasDataForMarble()
@@ -352,5 +394,7 @@ public class MainWindowViewModel : ViewModelBase
             return;
 
         LasData[Materials.Marble] = lasData;
+
+        MetaDataMarble = GetDateAndSerialNum(lasData);
     }
 }

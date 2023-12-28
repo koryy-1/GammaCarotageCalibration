@@ -31,10 +31,13 @@
 
 			<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 				<Button Content="Выбрать LAS File для алюминия" Command="{Binding OpenLasFileForAlumCommand}"/>
+				<TextBlock Text="{Binding MetaDataAl, Mode=TwoWay}"/>
 				<Button Content="Выбрать LAS File для дюралюминий" Command="{Binding OpenLasFileForDuralCommand}"/>
+				<TextBlock Text="{Binding MetaDataDural, Mode=TwoWay}"/>
 				<Button Content="Выбрать LAS File для магния" Command="{Binding OpenLasFileForMagnesCommand}"/>
+				<TextBlock Text="{Binding MetaDataMagn, Mode=TwoWay}"/>
 				<Button Content="Выбрать LAS File для мрамора" Command="{Binding OpenLasFileForMarbleCommand}"/>
-				<!--<Button Content="Перестроить графики" />-->
+				<TextBlock Text="{Binding MetaDataMarble, Mode=TwoWay}"/>
 				<Button Content="Произвести расчеты" Command="{Binding ShowResultsCommand}" Margin="0,20,0,0"/>
 			</StackPanel>
 		</Grid>
@@ -80,6 +83,7 @@
 					  GridLinesVisibility="All"
 					  BorderThickness="1" BorderBrush="Gray">
 					<DataGrid.Columns>
+						<DataGridTextColumn Header="Описание" Width="*" Binding="{Binding Description}"/>
 						<DataGridTextColumn Header="Q" Width="*" Binding="{Binding Q}"/>
 						<DataGridTextColumn Header="A" Width="*" Binding="{Binding A}" />
 						<DataGridTextColumn Header="C" Width="*" Binding="{Binding C}"/>

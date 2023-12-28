@@ -9,12 +9,12 @@ namespace GammaCarotageCalibration.Models
     public class Report
     {
         public double Density { get; set; }
-        public double ProbeData { get; set; }
-        public double CalculatedDensity { get; set; }
-        public double MeasurementError { get; set; }
+        public string ProbeData { get; set; }
+        public string CalculatedDensity { get; set; }
+        public string MeasurementError { get; set; }
 
         public Report(
-            double density, double dataProbe, double calculatedDensity, double measurementError
+            double density, string dataProbe, string calculatedDensity, string measurementError
             )
         {
             Density = density;
